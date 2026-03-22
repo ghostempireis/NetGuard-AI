@@ -1,0 +1,8 @@
+flask
+flask-cors
+psutil
+scikit-learn
+numpy
+plyer
+pystray
+pillow

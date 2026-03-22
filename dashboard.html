@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetGuard AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0e;
+    --bg2: #0a1520;
+    --bg3: #0d1e2e;
+    --accent: #00ff88;
+    --accent2: #00ccff;
+    --danger: #ff3355;
+    --warning: #ffaa00;
+    --safe: #00ff88;
+    --text: #c8e6ff;
+    --text-dim: #4a7090;
+    --border: #0f3050;
+    --glow: 0 0 20px rgba(0,255,136,0.3);
+    --glow-danger: 0 0 20px rgba(255,51,85,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; padding: 20px; max-width: 1400px; margin: 0 auto; }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, rgba(0,255,136,0.05), rgba(0,204,255,0.05));
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 3s linear infinite;
+  }
+
+  @keyframes scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px; color: var(--bg);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 10px rgba(0,255,136,0.3); }
+    50% { box-shadow: 0 0 25px rgba(0,255,136,0.7); }
+  }
+
+  .logo h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-shadow: 0 0 15px rgba(0,255,136,0.5);
+  }
+
+  .logo span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.3);
+    border-radius: 2px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .time-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .stat-card.green::before { background: var(--safe); }
+  .stat-card.blue::before { background: var(--accent2); }
+  .stat-card.red::before { background: var(--danger); }
+  .stat-card.yellow::before { background: var(--warning); }
+
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card.green .stat-value { color: var(--safe); }
+  .stat-card.blue .stat-value { color: var(--accent2); }
+  .stat-card.red .stat-value { color: var(--danger); }
+  .stat-card.yellow .stat-value { color: var(--warning); }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* Main Content */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+  }
+
+  /* Panel */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-title {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title::before {
+    content: '';
+    width: 4px; height: 4px;
+    background: var(--accent2);
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  .badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    background: rgba(0,204,255,0.1);
+    border: 1px solid rgba(0,204,255,0.3);
+    border-radius: 2px;
+    color: var(--accent2);
+  }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    position: sticky; top: 0;
+    background: var(--bg3);
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(15,48,80,0.5);
+    transition: background 0.2s;
+  }
+
+  tbody tr:hover { background: rgba(0,255,136,0.03); }
+
+  tbody td {
+    padding: 10px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .threat-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 2px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .threat-badge.safe {
+    background: rgba(0,255,136,0.1);
+    border: 1px solid rgba(0,255,136,0.3);
+    color: var(--safe);
+  }
+
+  .threat-badge.warning {
+    background: rgba(255,170,0,0.1);
+    border: 1px solid rgba(255,170,0,0.3);
+    color: var(--warning);
+  }
+
+  .threat-badge.danger {
+    background: rgba(255,51,85,0.15);
+    border: 1px solid rgba(255,51,85,0.4);
+    color: var(--danger);
+    animation: danger-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes danger-pulse {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: 0 0 8px rgba(255,51,85,0.4); }
+  }
+
+  .new-ip-row { background: rgba(0,204,255,0.04) !important; }
+
+  /* Alert Feed */
+  .alert-feed { padding: 12px; max-height: 520px; overflow-y: auto; }
+
+  .alert-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 3px;
+    border-left: 3px solid;
+    font-size: 12px;
+    animation: slideIn 0.3s ease;
+    line-height: 1.5;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .alert-item.new_ip {
+    background: rgba(0,204,255,0.06);
+    border-color: var(--accent2);
+  }
+
+  .alert-item.threat {
+    background: rgba(255,51,85,0.08);
+    border-color: var(--danger);
+  }
+
+  .alert-icon { font-size: 14px; flex-shrink: 0; }
+
+  .alert-text { flex: 1; }
+  .alert-msg { color: var(--text); margin-bottom: 2px; font-family: 'Share Tech Mono', monospace; font-size: 11px; }
+  .alert-time { color: var(--text-dim); font-size: 10px; }
+
+  .no-alerts {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  /* Network Stats Bar */
+  .net-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+  }
+
+  .net-stat {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .net-stat-label { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 4px; }
+  .net-stat-val { font-family: 'Share Tech Mono', monospace; font-size: 18px; color: var(--accent2); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .main-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">NG</div>
+      <div>
+        <h1>NETGUARD AI</h1>
+        <span>NETWORK INTRUSION DETECTION SYSTEM v1.0</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;">
+      <div class="time-display" id="clock">--:--:--</div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span id="status-text">MONITORING</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card green">
+      <div class="stat-label">Active Connections</div>
+      <div class="stat-value" id="stat-conn">0</div>
+      <div class="stat-sub">live network links</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Unique IPs</div>
+      <div class="stat-value" id="stat-ips">0</div>
+      <div class="stat-sub">distinct addresses</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Threats</div>
+      <div class="stat-value" id="stat-threats">0</div>
+      <div class="stat-sub">high risk detected</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">Alerts</div>
+      <div class="stat-value" id="stat-alerts">0</div>
+      <div class="stat-sub">total alerts fired</div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+
+    <!-- Connections Table -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Live Connections</div>
+        <div class="badge" id="conn-count">0 active</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Remote IP</th>
+              <th>Port</th>
+              <th>Process</th>
+              <th>Status</th>
+              <th>Threat</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="conn-table">
+            <tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:30px;">
+              Loading connections...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="net-stats">
+        <div class="net-stat">
+          <div class="net-stat-label">↑ DATA SENT</div>
+          <div class="net-stat-val" id="mb-sent">0 MB</div>
+        </div>
+        <div class="net-stat">
+          <div class="net-stat-label">↓ DATA RECEIVED</div>
+          <div class="net-stat-val" id="mb-recv">0 MB</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Feed -->
+    <div class="panel" style="display:flex;flex-direction:column;">
+      <div class="panel-header">
+        <div class="panel-title">Alert Feed</div>
+        <div class="badge" id="alert-count">0 alerts</div>
+      </div>
+      <div class="alert-feed" id="alert-feed">
+        <div class="no-alerts">🛡️<br><br>System secure hai<br>Koi alert nahi</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('en-IN', {hour12: false});
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Fetch stats
+  async function fetchStats() {
+    try {
+      const r = await fetch('http://localhost:5000/api/stats');
+      const d = await r.json();
+      document.getElementById('stat-conn').textContent = d.total_connections || 0;
+      document.getElementById('stat-ips').textContent = d.unique_ips || 0;
+      document.getElementById('stat-threats').textContent = d.threat_count || 0;
+      document.getElementById('stat-alerts').textContent = d.alert_count || 0;
+      document.getElementById('mb-sent').textContent = (d.mb_sent || 0) + ' MB';
+      document.getElementById('mb-recv').textContent = (d.mb_recv || 0) + ' MB';
+    } catch(e) {
+      document.getElementById('status-text').textContent = 'DISCONNECTED';
+    }
+  }
+
+  // Fetch connections
+  async function fetchConnections() {
+    try {
+      const r = await fetch('http://localhost:5000/api/connections');
+      const conns = await r.json();
+      document.getElementById('conn-count').textContent = conns.length + ' active';
+      const tbody = document.getElementById('conn-table');
+
+      if (conns.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:30px;">Koi active connection nahi</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = conns.map(c => {
+        const lvl = c.threat_level || 'safe';
+        const badge = `<span class="threat-badge ${lvl}">${lvl.toUpperCase()}</span>`;
+        const rowClass = c.is_new ? 'class="new-ip-row"' : '';
+        const newTag = c.is_new ? ' 🆕' : '';
+        return `<tr ${rowClass}>
+          <td>${c.remote_ip}${newTag}</td>
+          <td>${c.remote_port}</td>
+          <td>${c.process}</td>
+          <td style="color:var(--text-dim);font-size:11px;">${c.status}</td>
+          <td>${badge}</td>
+          <td style="color:var(--text-dim)">${c.time}</td>
+        </tr>`;
+      }).join('');
+    } catch(e) {}
+  }
+
+  // Fetch alerts
+  async function fetchAlerts() {
+    try {
+      const r = await fetch('http://localhost:5000/api/alerts');
+      const alerts = await r.json();
+      document.getElementById('alert-count').textContent = alerts.length + ' alerts';
+      const feed = document.getElementById('alert-feed');
+
+      if (alerts.length === 0) {
+        feed.innerHTML = '<div class="no-alerts">🛡️<br><br>System secure hai<br>Koi alert nahi</div>';
+        return;
+      }
+
+      feed.innerHTML = alerts.map(a => {
+        const icon = a.type === 'threat' ? '⚠️' : '🔍';
+        return `<div class="alert-item ${a.type}">
+          <div class="alert-icon">${icon}</div>
+          <div class="alert-text">
+            <div class="alert-msg">${a.message}</div>
+            <div class="alert-time">${a.time} • ${a.process || ''}</div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) {}
+  }
+
+  // Refresh loop
+  function refresh() {
+    fetchStats();
+    fetchConnections();
+    fetchAlerts();
+  }
+
+  refresh();
+  setInterval(refresh, 8000);  // Har 8 second mein update
+</script>
+</body>
+</html>
